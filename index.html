@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIT COLLEGE PREDICTOR</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body >
+
+    <form id="predictForm">
+        <label for="rank">ENTER YOUR VITEEE RANK:</label>
+        <input type="number" id="rank" required>
+      
+        <br><br>
+        <button type="submit">PREDICT COLLEGE</button>
+    </form>
+
+
+    <h1>RESULTS:</h1>
+    <ul id="results"></ul>
+    
+
+ <script>
+
+   
+document.getElementById('predictForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  const rank = parseInt(document.getElementById('rank').value);
+
+  fetch('data.json')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Filter categories where rank <= cutoff
+      const eligible = data.filter(item => rank <= parseInt(item.CUTOFF));
+
+      // Group by unique COLLEGE + BRANCH combo
+      const bestPerCollegeBranch = {};
+
+      eligible.forEach(item => {
+        const key = `${item.COLLEGE} | ${item.BRANCH}`;  // combined key
+        if (!bestPerCollegeBranch[key] || parseInt(item.CUTOFF) < parseInt(bestPerCollegeBranch[key].CUTOFF)) {
+          bestPerCollegeBranch[key] = item;
+        }
+      });
+
+      const resultList = document.getElementById('results');
+      resultList.innerHTML = '';
+
+      const combos = Object.keys(bestPerCollegeBranch);
+
+      if (combos.length === 0) {
+        resultList.innerHTML = '<li>No matching colleges found.</li>';
+      } else {
+        combos.forEach(key => {
+          const item = bestPerCollegeBranch[key];
+          const li = document.createElement('li');
+          li.textContent = `${item.COLLEGE} - ${item.BRANCH} (Category: ${item.CATEGORY})`;
+          resultList.appendChild(li);
+        });
+      }
+    })
+    .catch(error => {
+      document.getElementById('results').innerHTML = `<li>Error fetching data: ${error.message}</li>`;
+    });
+});
+
+
+ </script>
+
+<br><br><br>
+<H2>Disclaimer: The following data is not official, but rather an analysis of self-reported information from online respondents. Please note that this analysis may not be entirely accurate.These predictions are indicative in nature and do not guarantee admission. It is not an official VIT resource. Always refer to official VIT announcements for accurate information.</H2>
+<h3> Thank You!</h3>
+
+
+    
+</body>
+</html>
